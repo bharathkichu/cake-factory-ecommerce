@@ -1,68 +1,76 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 const Login = () => {
 
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
-    username : '',
-    password : '',
-    email : '',
+    username: '',
+    password: '',
+    email: '',
   });
+  const [errorMessage, setErrorMessage] = useState('');
 
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
+
   const login = async () => {
-    console.log("Login function executed", formData);
-    let responseData;
+    if (!formData.email || !formData.password) {
+      setErrorMessage('Please fill in all fields.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:7777/api/users/login', {
+      const response = await fetch('https://cake-factory-backend.onrender.com/api/users/login', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           "Content-Type": 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
-      responseData = await response.json();
+      const responseData = await response.json();
 
       if (responseData.success) {
         localStorage.setItem('auth-token', responseData.token);
         window.location.replace('/');
       } else {
-        alert(responseData.errors);
+        setErrorMessage(responseData.errors || 'Login failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error during signup:', error);
-      alert('An error occurred. Please try again later.');
+      console.error('Error during login:', error);
+      setErrorMessage('An error occurred. Please try again later.');
     }
   }
 
   const signup = async () => {
-    console.log("Signup function executed", formData);
-    let responseData;
+    if (!formData.username || !formData.email || !formData.password) {
+      setErrorMessage('Please fill in all fields.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:7777/api/users/signup', {
+      const response = await fetch('https://cake-factory-backend.onrender.com/api/users/signup', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           "Content-Type": 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
-      responseData = await response.json();
+      const responseData = await response.json();
 
       if (responseData.success) {
         localStorage.setItem('auth-token', responseData.token);
         window.location.replace('/');
       } else {
-        alert(responseData.errors);
+        setErrorMessage(responseData.errors || 'Signup failed. Please try again.');
       }
     } catch (error) {
       console.error('Error during signup:', error);
-      alert('An error occurred. Please try again later.');
+      setErrorMessage('An error occurred. Please try again later.');
     }
   };
 
@@ -80,16 +88,28 @@ const Login = () => {
           <input name='password' type='password' value={formData.password} onChange={changeHandler} placeholder='Password'
             className='h-8 w-full pl-5 bg-white outline-none rounded-xl text-sm' />
         </div>
-        <button onClick={() => { state === "Login" ? login() : signup() }} className='btn-dark rounded-xl my-5 !py-1'>Continue</button>
+
+        {/* Show error message if any */}
+        {errorMessage && (
+          <p className='text-red-600 font-bold mt-3'>{errorMessage}</p>
+        )}
+
+        <button onClick={() => { state === "Login" ? login() : signup() }} className='btn-dark rounded-xl my-5 !py-1'>
+          Continue
+        </button>
+
         {state === "Sign Up" ? (
           <p className='text-black font-bold'>
             Already have an account? 
-            <span onClick={() => { setState("Login") }} className='text-red-900 underline cursor-pointer'>Login</span> </p>
+            <span onClick={() => { setState("Login") }} className='text-red-900 underline cursor-pointer'>Login</span> 
+          </p>
         ) : (
           <p className='text-black font-bold'>
             Create an account? 
-            <span onClick={() => { setState("Sign Up") }} className='text-red-900 underline cursor-pointer'>Click here</span> </p>
+            <span onClick={() => { setState("Sign Up") }} className='text-red-900 underline cursor-pointer'>Click here</span> 
+          </p>
         )}
+
         <div className='flexStart mt-5 gap-3'>
           <input type='checkbox' name='' id='' />
           <p>By continuing, I agree to the terms of use & privacy policy.</p>
